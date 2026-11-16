@@ -1,0 +1,10 @@
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & $n$ & Cook's $D > 4/n$ & Max VIF & Breusch--Pagan $p$ & Key estimate, all & Key estimate, without influential \\
+\midrule
+A7: filter $\sim$ espresso &  54 &  3 & -- & .933 & 8.42 & 8.01 \\
+A8: espresso $\sim$ filter + distance & 187 & 10 & 1.01 & .093 & 4.40 & 4.12 \\
+A9: filter $\sim$ espresso $\times$ chain &  54 &  3 & 1.23 & .538 & \ensuremath{-}6.02 & \ensuremath{-}7.18 \\
+A10: logit filter $\sim$ east km & 187 &  8 & -- & -- & 4.5 & 6.3 \\
+\bottomrule
+\end{tabular}

@@ -1,0 +1,14 @@
+\begin{tabular}{lllrrrccl}
+\toprule
+Variable & Group & Used in & n & Skewness & Shapiro--Wilk p & Normal? & CLT applies? & Method \\
+\midrule
+Filter coffee price & Cafes offering filter & A1, A6, A7, A9 &  54 & 0.89 & .003 & No & Yes & Parametric \\
+Espresso price & Offers filter & A2, A6 &  54 & 0.73 & .027 & No & Yes & Parametric \\
+Espresso price & No filter & A2 & 133 & 0.69 & < .001 & No & Yes & Parametric \\
+Filter minus espresso & Cafes offering filter & A3 &  54 & 2.34 & < .001 & No & Yes & Parametric \\
+Espresso price & No specialty feature & A4 & 125 & 0.68 & < .001 & No & Yes & Parametric \\
+Espresso price & One feature & A4 &  49 & 1.07 & .002 & No & Yes & Parametric \\
+Espresso price & Both features & A4 &  13 & \ensuremath{-}0.03 & .941 & Yes & -- & Parametric \\
+Espresso price & All cafes & A8 (outcome) & 189 & 0.66 & < .001 & No & Yes & Parametric \\
+\bottomrule
+\end{tabular}

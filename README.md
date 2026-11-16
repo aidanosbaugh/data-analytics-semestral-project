@@ -1,7 +1,7 @@
 # Prague Café Market: Specialty Cafés
 
 Semestral project for **Data Analytics**, <batch>, <semester/year>.
-Author: <your name> · Team partner: <partner's name>
+Author: Aidan Osbaugh · Team partner: <partner's name>
 
 What do specialty cafés in Prague offer? This repository analyses data on
 189 Prague cafés collected in person by the class. It looks at filter coffee
@@ -34,12 +34,19 @@ presentation/
    source("analysis/02_descriptive.R")
    source("analysis/03_analysis.R")
    ```
-3. Compile `report/report.tex` and `presentation/slides.tex` with LaTeX.
+3. Compile `report/report.tex` and `presentation/slides.tex` with LaTeX
+   (e.g. `latexmk -pdf report.tex` inside `report/`). Numbers quoted in the
+   text come from `report/tables/results_macros.tex`, written by `03_analysis.R`.
 
 Every number, table and figure in the report is produced by these scripts.
 
 ## Software
 
-- R <version, e.g. 4.4.1>, packages: <list once 03_analysis.R is written>
+- R 4.6.1. `01_cleaning.R` and `02_descriptive.R` use base R only;
+  `03_analysis.R` uses `sandwich` 3.1.3, `lmtest` 0.9.40, `car` 3.1.5 and
+  `marginaleffects` 1.0.0:
+  ```r
+  install.packages(c("sandwich", "lmtest", "car", "marginaleffects"))
+  ```
 - Bootstrap seed: 2026, 5,000 resamples
 - Significance level: α = .05

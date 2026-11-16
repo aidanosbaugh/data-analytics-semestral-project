@@ -1,0 +1,16 @@
+\begin{tabular}{lp{4.8cm}p{7.4cm}c}
+\toprule
+Analysis & Second method & Result & Agrees? \\
+\midrule
+A1 & Wilcoxon signed-rank; bootstrap mean & $p = .190$; bootstrap CI 84.5 [80.6, 88.6] CZK & Yes \\
+A2 & Mann--Whitney (one-tailed); bootstrap difference & $p = .010$; bootstrap CI 3.9 [0.2, 7.6] CZK & Yes \\
+A3 & Wilcoxon signed-rank (one-tailed); bootstrap mean & $p < .001$; bootstrap CI 17.1 [14.3, 20.3] CZK & Yes \\
+A4 & Classic ANOVA + Tukey; Kruskal--Wallis & $F$: $p = .153$; $H$: $p = .040$ & No \\
+A5 & Fisher's exact test & OR = 4.90 [1.74, 14.69], $p = .001$ & Yes \\
+A6 & Spearman $\rho$; Kendall $\tau$ & $\rho = 0.73$, $p < .001$; $\tau = 0.60$, $p < .001$ & Yes \\
+A7 & Pairs bootstrap of the slope; without influential caf\'es & CI [6.47, 10.97]; $b = 8.01$ [6.01, 10.02] & Yes \\
+A8 & log distance; without influential caf\'es & $b = 4.65$ [0.89, 8.41]; $b = 4.12$ [0.87, 7.36] & Yes \\
+A9 & Classic nested $F$; without influential caf\'es & $p = .051$; $b_{\times} = \ensuremath{-}7.18$ [\ensuremath{-}12.49, \ensuremath{-}1.86] & No \\
+A10 & Bootstrap AME; linear probability model & CI [0.9, 7.9] pp; 4.6 pp [0.9, 8.3] & Yes \\
+\bottomrule
+\end{tabular}

@@ -69,7 +69,10 @@ fmt_p <- function(p) {
   ifelse(p < 0.001, "< .001", sub("^0", "", formatC(p, format = "f", digits = 3)))
 }
 
-fmt <- function(x, digits = 1) formatC(x, format = "f", digits = digits)
+# Negative numbers get a typeset minus sign in LaTeX ("-0.2" -> "\ensuremath{-}0.2").
+fmt <- function(x, digits = 1) {
+  sub("^-", "\\\\ensuremath{-}", formatC(x, format = "f", digits = digits))
+}
 
 # Numeric summary of one variable: n, missing, mean with t-based 95% CI, SD,
 # median, IQR (Q1-Q3) and range.

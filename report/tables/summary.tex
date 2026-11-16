@@ -1,0 +1,16 @@
+\begin{tabular}{lllrlll}
+\toprule
+ & Question & Method & $n$ & Estimate [95\% CI] & Effect size [95\% CI] & $p$ \\
+\midrule
+A1 & Filter coffee price vs 4 USD & One-sample $t$ & 54 & $M = 84.5$ [80.3, 88.7] CZK & $d = \ensuremath{-}0.14$ [\ensuremath{-}0.40, 0.13] & .321 \\
+A2 & Espresso: filter minus no filter & Welch $t$ (one-tailed) & 187 & $M_\Delta = 3.9$ [0.1, 7.7] CZK & $d = 0.32$ [0.00, 0.63] & .023 \\
+A3 & Filter minus espresso, same caf\'e & Paired $t$ (one-tailed) & 54 & $M_d = 17.1$ [13.9, 20.4] CZK & $d_z = 1.45$ [1.06, 1.83] & < .001 \\
+A4 & Espresso by specialty features & Welch ANOVA & 187 & Both $-$ None: 5.8 [\ensuremath{-}2.6, 14.3] CZK & $\eta^2 = 0.020$ [0.000, 0.069] & .136 \\
+A5 & Roastery $\times$ offers filter & $\chi^2$ test & 187 & 37.2 pp [15.4, 59.0] & $V = 0.26$ [0.09, 0.41] & < .001 \\
+A6 & Filter and espresso price & Pearson $r$ & 54 & $r = 0.64$ [0.46, 0.78] & $\rho = 0.73$ & < .001 \\
+A7 & Filter price per 10 CZK espresso & OLS, HC3 SE & 54 & $b = 8.42$ [6.20, 10.65] CZK & $R^2 = 0.416$ & < .001 \\
+A8 & Filter gap, adjusted for distance & OLS, HC3 SE & 187 & $b = 4.40$ [0.58, 8.22] CZK & $R^2 = 0.054$ & .024 \\
+A9 & Espresso slope: chain vs independent & OLS interaction, HC3 & 54 & $b_{\times} = \ensuremath{-}6.02$ [\ensuremath{-}12.00, \ensuremath{-}0.05] CZK & $R^2 = 0.459$ & .048 \\
+A10 & Offers filter, per km east & Logit, AME & 187 & 4.5 pp [0.9, 8.1] & OR $= 1.25$ [1.04, 1.52] & .015 \\
+\bottomrule
+\end{tabular}
