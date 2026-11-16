@@ -78,7 +78,7 @@ The filter price has three meanings that the analysis depends on: a price means 
 
 \subsection{Statistical methods}
 
-All tests use $\alpha = .05$. Hypotheses and their direction were fixed before the data were analysed (they are written at the top of \texttt{03\_analysis.R}); A2 and A3 are one-tailed because the questions name a direction, all others two-tailed. The method for each question was chosen in \texttt{02\_descriptive.R} from the histograms, Q--Q plots, the skewness and the group sizes (Appendix~\ref{app:distributions}): every compared variable is either close to normal or large enough ($n \ge 49$) for its mean to be approximately normal, so the primary method is parametric throughout and a rank-based or bootstrap method is reported as the second method (Appendix~\ref{app:robustness}). We use a one-sample $t$-test (A1), Welch's $t$-test (A2), a paired $t$-test (A3), Welch's one-way ANOVA with Games--Howell post hoc comparisons, chosen because the groups are very unequal in size (A4), Pearson's $\chi^2$ test without continuity correction (A5), Pearson's correlation (A6), ordinary least squares with HC3 heteroskedasticity-robust standard errors (A7--A9), and logistic regression with the average marginal effect and its delta-method interval (A10). Confidence intervals of means are $t$-based; those of Cohen's $d$ and $\eta^2$ use the noncentral $t$ and $F$ distributions; bootstrap intervals are percentile intervals from \Boot{} resamples with seed \Seed. Multiple comparisons within A4 are adjusted by the Games--Howell procedure; as a check across the ten questions, Appendix~\ref{app:robustness} also applies Holm's adjustment. The analysis was run in R~\Rversion{} with the packages \texttt{sandwich}~\Versandwich, \texttt{lmtest}~\Verlmtest, \texttt{car}~\Vercar{} and \texttt{marginaleffects}~\Vermarginaleffects.
+All tests use $\alpha = .05$. Hypotheses and their direction were fixed before the data were analysed (they are written at the top of \texttt{03\_analysis.R}); A2 and A3 are one-tailed because the questions name a direction, all others two-tailed. The method for each question was chosen in \texttt{02\_descriptive.R} from the histograms, Q--Q plots, the skewness and the group sizes (Appendix~\ref{app:distributions}): every compared variable is either close to normal or large enough ($n \ge 49$) for its mean to be approximately normal, so the parametric method is used for every question and only its result is reported in the main text. We use a one-sample $t$-test (A1), Welch's $t$-test (A2), a paired $t$-test (A3), Welch's one-way ANOVA with Games--Howell post hoc comparisons, chosen because the groups are very unequal in size (A4), Pearson's $\chi^2$ test without continuity correction (A5), Pearson's correlation (A6), ordinary least squares with HC3 heteroskedasticity-robust standard errors (A7--A9), and logistic regression with the average marginal effect and its delta-method interval (A10). Confidence intervals of means are $t$-based; those of Cohen's $d$ and $\eta^2$ use the noncentral $t$ and $F$ distributions; bootstrap intervals are percentile intervals from \Boot{} resamples with seed \Seed. Other assumptions were checked for each method: the equality of variances with Levene's test before comparing groups (A2, A4), the expected counts of the contingency table (A5), and the residuals and influential observations of every regression (A7--A10, Appendix~\ref{app:diagnostics}). Multiple comparisons within A4 are adjusted by the Games--Howell procedure. Every test assumes that caf\'es are independent, but caf\'es in the same district share rents and customers; their prices are therefore positively correlated, which makes the standard errors too small and the $p$-values too low, so results near $p = .05$ deserve particular caution. The rank-based, bootstrap and other checks in Appendix~\ref{app:robustness} were not planned in advance and are exploratory. The analysis was run in R~\Rversion{} with the packages \texttt{sandwich}~\Versandwich, \texttt{lmtest}~\Verlmtest, \texttt{car}~\Vercar{} and \texttt{marginaleffects}~\Vermarginaleffects.
 
 % =============================================================================
 \section{Results}
@@ -87,7 +87,7 @@ Table~\ref{tab:summary} summarises the main result of every analysis; the subsec
 
 \begin{table}[H]
 \centering\small
-\caption{Main results of the ten analyses. Estimates in the original units with 95\% confidence intervals; pp = percentage points; $p$ is one-tailed for A2 and A3 and two-tailed otherwise. A4 shows the largest pairwise difference.}
+\caption{Main results of the ten analyses. Estimates in the original units with 95\% confidence intervals; pp = percentage points; $p$ is one-tailed for A2 and A3 and two-tailed otherwise. A4 shows the largest pairwise difference. Lost = caf\'es of the \Nall{} excluded because of missing values (no filter price, or unknown filter status).}
 \label{tab:summary}
 \fittable{summary.tex}
 \end{table}
@@ -97,7 +97,7 @@ Table~\ref{tab:summary} summarises the main result of every analysis; the subsec
 
 \emph{Is the average price of a filter coffee different from 4 USD?} The benchmark was fixed before looking at the data: 4 USD at the Czech National Bank rate of 5 November 2026 (\USDCZK\,CZK per USD) is \BenchCZK\,CZK. $H_0$: $\mu = \BenchCZK$\,CZK; $H_1$: $\mu \neq \BenchCZK$\,CZK.
 
-Figure~\ref{fig:A1} shows the \AoneN{} filter prices; most lie between 75 and 90\,CZK with a few expensive cups up to 145\,CZK. The mean price was \AoneEst, so the difference from the benchmark was \AoneDiff, with \AoneD. A one-sample $t$-test gave \AoneT. The Wilcoxon signed-rank test (\AoneWil) and the bootstrap interval of the mean (Table~\ref{tab:A1}) agree. In this sample, a filter coffee in Prague costs about what 4 USD buys: the data are compatible with a price between 6\,CZK below and 2\,CZK above the benchmark.
+Figure~\ref{fig:A1} shows the \AoneN{} filter prices; most lie between 75 and 90\,CZK with a few expensive cups up to 145\,CZK. The mean price was \AoneEst, so the difference from the benchmark was \AoneDiff, with \AoneD. A one-sample $t$-test gave \AoneT. The median price was \AoneMedian\,CZK (Table~\ref{tab:A1}). The 135 caf\'es without a filter price (133 not offering filter coffee, 2 unknown) are not part of this analysis. In this sample, a filter coffee in Prague costs about what 4 USD buys: the data are compatible with a price between 6\,CZK below and 2\,CZK above the benchmark.
 
 \begin{figure}[H]
 \centering
@@ -108,7 +108,7 @@ Figure~\ref{fig:A1} shows the \AoneN{} filter prices; most lie between 75 and 90
 
 \begin{table}[H]
 \centering\small
-\caption{A1: mean filter coffee price (CZK) with 95\% confidence intervals, tested against \BenchCZK\,CZK ($n = \AoneN$). Two-tailed $p$-values.}
+\caption{A1: mean filter coffee price (CZK) with its 95\% confidence interval, the difference from the benchmark of \BenchCZK\,CZK, Cohen's $d$, and the one-sample $t$-test (two-tailed).}
 \label{tab:A1}
 \fittable{A1_table.tex}
 \end{table}
@@ -118,7 +118,7 @@ Figure~\ref{fig:A1} shows the \AoneN{} filter prices; most lie between 75 and 90
 
 \emph{Do caf\'es that offer filter coffee charge more for an espresso than caf\'es that do not?} The difference is the mean espresso price of caf\'es that offer filter coffee \emph{minus} that of caf\'es that do not. $H_0$: $\mu_1 - \mu_0 = 0$; $H_1$: $\mu_1 - \mu_0 > 0$ (one-tailed).
 
-Figure~\ref{fig:A2} shows the two groups. The \AtwoNone{} caf\'es with filter coffee charged on average \AtwoMone\,CZK for an espresso, the \AtwoNzero{} caf\'es without it \AtwoMzero\,CZK: \AtwoEst. Welch's test gave \AtwoT; the one-sided 95\% lower bound of the difference is \AtwoLower\,CZK. The Mann--Whitney test (\AtwoWil) and the bootstrap (Table~\ref{tab:A2}) agree. (The interval of $d$ uses the pooled standard deviation and therefore just touches zero, while the Welch interval of the raw difference does not.) In this sample, caf\'es that offer filter coffee charge about 4\,CZK more for an espresso, a small effect.
+Figure~\ref{fig:A2} shows the two groups. The \AtwoNone{} caf\'es with filter coffee charged on average \AtwoMone\,CZK for an espresso, the \AtwoNzero{} caf\'es without it \AtwoMzero\,CZK: \AtwoEst. Welch's test gave \AtwoT; the one-sided 95\% lower bound of the difference is \AtwoLower\,CZK. Levene's test gave no evidence of unequal variances (\AtwoLevene); Welch's test does not need equal variances in any case. Two caf\'es with unknown filter status were lost (Table~\ref{tab:A2}). (The interval of $d$ uses the pooled standard deviation and therefore just touches zero, while the Welch interval of the raw difference does not.) In this sample, caf\'es that offer filter coffee charge about 4\,CZK more for an espresso, a small effect.
 
 \begin{figure}[H]
 \centering
@@ -129,7 +129,7 @@ Figure~\ref{fig:A2} shows the two groups. The \AtwoNone{} caf\'es with filter co
 
 \begin{table}[H]
 \centering\small
-\caption{A2: difference in mean espresso price (CZK), caf\'es offering filter coffee minus caf\'es that do not, with two-sided 95\% confidence intervals and one-tailed $p$-values ($n = 54 + 133$).}
+\caption{A2: difference in mean espresso price (CZK), caf\'es offering filter coffee minus caf\'es that do not, with its two-sided 95\% confidence interval, Cohen's $d$, and Welch's $t$-test. The $p$-value is one-tailed, as fixed in advance.}
 \label{tab:A2}
 \fittable{A2_table.tex}
 \end{table}
@@ -139,7 +139,7 @@ Figure~\ref{fig:A2} shows the two groups. The \AtwoNone{} caf\'es with filter co
 
 \emph{How much more does a filter coffee cost than an espresso in the same caf\'e?} The within-caf\'e difference is the filter price \emph{minus} the espresso price. $H_0$: $\mu_d = 0$; $H_1$: $\mu_d > 0$ (one-tailed).
 
-Figure~\ref{fig:A3} shows the \AthreeN{} differences. Only \AthreeZero{} caf\'es charge the same for both, and none charges less for filter coffee; one caf\'e charges \AthreeMax\,CZK more. The mean difference was \AthreeEst{} (median \AthreeMedian\,CZK), \AthreeDz, \AthreeT. Without the most extreme caf\'e the mean is 16.0\,CZK [13.6, 18.5], and the Wilcoxon test and the bootstrap agree (Table~\ref{tab:A3}). In this sample, a filter coffee costs about 17\,CZK more than an espresso in the same caf\'e, a large and consistent difference.
+Figure~\ref{fig:A3} shows the \AthreeN{} differences. Only \AthreeZero{} caf\'es charge the same for both, and none charges less for filter coffee; one caf\'e charges \AthreeMax\,CZK more. The mean difference was \AthreeEst{} (median \AthreeMedian\,CZK), \AthreeDz, \AthreeT. The 135 caf\'es without a filter price were lost (Table~\ref{tab:A3}). In this sample, a filter coffee costs about 17\,CZK more than an espresso in the same caf\'e, a large and consistent difference.
 
 \begin{figure}[H]
 \centering
@@ -150,7 +150,7 @@ Figure~\ref{fig:A3} shows the \AthreeN{} differences. Only \AthreeZero{} caf\'es
 
 \begin{table}[H]
 \centering\small
-\caption{A3: mean within-caf\'e difference, filter coffee minus espresso (CZK), with two-sided 95\% confidence intervals and one-tailed $p$-values ($n = \AthreeN$).}
+\caption{A3: mean within-caf\'e difference, filter coffee minus espresso (CZK), with its two-sided 95\% confidence interval, median and IQR, $d_z$, and the paired $t$-test. The $p$-value is one-tailed, as fixed in advance.}
 \label{tab:A3}
 \fittable{A3_table.tex}
 \end{table}
@@ -160,7 +160,7 @@ Figure~\ref{fig:A3} shows the \AthreeN{} differences. Only \AthreeZero{} caf\'es
 
 \emph{Does the espresso price differ between caf\'es with none, one or both specialty features (being a roastery, offering filter coffee)?} $H_0$: $\mu_\text{none} = \mu_\text{one} = \mu_\text{both}$; $H_1$: at least one mean differs.
 
-The mean espresso price rose with the number of features (Figure~\ref{fig:A4}): none \AfourMNone{} ($n = \AfourNNone$), one \AfourMOne{} ($n = \AfourNOne$), both \AfourMBoth{} ($n = \AfourNBoth$). Welch's ANOVA gave \AfourF, with \AfourEta. None of the Games--Howell comparisons was significant (Table~\ref{tab:A4}); the largest, both minus none, was \AfourGHBothNone. The classic ANOVA agrees (\AfourClassic), but the Kruskal--Wallis test is significant (\AfourKW; Appendix~\ref{app:robustness}), because the rank test is less affected by the long right tail of the ``one feature'' group. In this sample the espresso price tends to rise with the number of specialty features, by about 6\,CZK from none to both, but the groups are too small and too variable to rule out no difference; at most about 7\% of the variation in espresso prices is linked to the features.
+The mean espresso price rose with the number of features (Figure~\ref{fig:A4}): none \AfourMNone{} ($n = \AfourNNone$), one \AfourMOne{} ($n = \AfourNOne$), both \AfourMBoth{} ($n = \AfourNBoth$). Levene's test gave no evidence of unequal variances (\AfourLevene), but the groups are very unequal in size, so Welch's ANOVA was used: \AfourF, with \AfourEta. Two caf\'es with unknown filter status were lost. None of the Games--Howell comparisons was significant (Table~\ref{tab:A4}); the largest, both minus none, was \AfourGHBothNone. In this sample the espresso price tends to rise with the number of specialty features, by about 6\,CZK from none to both, but there is no evidence of a difference: the groups are small and variable, especially the 13 caf\'es with both features; at most about 7\% of the variation in espresso prices is linked to the features.
 
 \begin{figure}[H]
 \centering
@@ -171,7 +171,7 @@ The mean espresso price rose with the number of features (Figure~\ref{fig:A4}): 
 
 \begin{table}[H]
 \centering\small
-\caption{A4: Games--Howell pairwise comparisons of the mean espresso price (CZK). Differences with simultaneous 95\% confidence intervals and adjusted $p$-values. The Tukey and rank-based post hoc tests are in Table~\ref{tab:posthoc}.}
+\caption{A4: Games--Howell pairwise comparisons of the mean espresso price (CZK). Differences with simultaneous 95\% confidence intervals and adjusted $p$-values; the omnibus test is in the last row.}
 \label{tab:A4}
 \fittable{A4_table.tex}
 \end{table}
@@ -181,7 +181,7 @@ The mean espresso price rose with the number of features (Figure~\ref{fig:A4}): 
 
 \emph{Is a roastery more likely to offer filter coffee than other caf\'es, and by how many percentage points?} $H_0$: offering filter coffee is independent of being a roastery; $H_1$: the two are associated (two-sided test). The difference is roasteries \emph{minus} other caf\'es.
 
-Table~\ref{tab:A5} and Figure~\ref{fig:A5} show the counts. \AfiveRoast{} roasteries offered filter coffee, against \AfiveOther{} other caf\'es: a difference of \AfivePP. The $\chi^2$ test gave \AfiveChi; the smallest expected count was \AfiveMinExp, so the approximation is adequate, and Fisher's exact test agrees (\AfiveFisher). The association was moderate, \AfiveV. The cell that departs most from independence is roasteries offering filter coffee (standardised residual \AfiveRes). In this sample, a roastery is about two and a half times as likely as another caf\'e to offer filter coffee.
+Table~\ref{tab:A5} and Figure~\ref{fig:A5} show the counts. \AfiveRoast{} roasteries offered filter coffee, against \AfiveOther{} other caf\'es: a difference of \AfivePP. The $\chi^2$ test gave \AfiveChi; the smallest expected count was \AfiveMinExp, so no expected count is below 5 and the $\chi^2$ test is appropriate. Two caf\'es with unknown filter status were lost. The association was moderate, \AfiveV. The cell that departs most from independence is roasteries offering filter coffee (standardised residual \AfiveRes). In this sample, a roastery is about two and a half times as likely as another caf\'e to offer filter coffee.
 
 \begin{table}[H]
 \centering\small
@@ -202,18 +202,18 @@ Table~\ref{tab:A5} and Figure~\ref{fig:A5} show the counts. \AfiveRoast{} roaste
 
 \emph{Is the filter coffee price correlated with the espresso price, and in which direction and how strongly?} $H_0$: $\rho = 0$; $H_1$: $\rho \neq 0$.
 
-Figure~\ref{fig:A6} shows a clear positive, roughly linear relation among the \AsixN{} caf\'es with both prices. Pearson's correlation was \AsixR, \AsixT; the bootstrap interval is \AsixBoot. The rank-based coefficients are a little higher, \AsixRho{} and \AsixTau{} (Table~\ref{tab:A6}), because a few expensive filter coffees weaken the linear fit more than the ordering. In this sample, caf\'es with a more expensive espresso also have a more expensive filter coffee, and the association is strong; it says nothing about why.
+Figure~\ref{fig:A6} shows a clear positive, roughly linear relation among the \AsixN{} caf\'es with both prices. Pearson's correlation was \AsixR, \AsixT{} (Table~\ref{tab:A6}): the two prices share $r^2 = \AsixRsq$ of their variance. In this sample, caf\'es with a more expensive espresso also have a more expensive filter coffee, and the association is strong; it says nothing about why.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.55\textwidth]{A6_figure.pdf}
-\caption{Price of a filter coffee against the price of an espresso in the same caf\'e (CZK), $n = \AsixN$. Points are slightly jittered because many prices are round numbers.}
+\caption{Price of a filter coffee against the price of an espresso in the same caf\'e (CZK), $n = \AsixN$. The legend gives Pearson's $r$ with its 95\% confidence interval. Points are slightly jittered because many prices are round numbers.}
 \label{fig:A6}
 \end{figure}
 
 \begin{table}[H]
 \centering\small
-\caption{A6: correlation of the filter coffee and espresso price ($n = \AsixN$). Two-tailed $p$-values.}
+\caption{A6: Pearson correlation of the filter coffee and espresso price with its 95\% confidence interval (Fisher $z$), the shared variance $r^2$, and the two-tailed test.}
 \label{tab:A6}
 \fittable{A6_table.tex}
 \end{table}
@@ -223,7 +223,7 @@ Figure~\ref{fig:A6} shows a clear positive, roughly linear relation among the \A
 
 \emph{By how many CZK does the filter coffee price change per 10\,CZK increase in the espresso price?} Model: filter price $= b_0 + b_1 \cdot$ (espresso price / 10) $+ e$. $H_0$: $b_1 = 0$; $H_1$: $b_1 \neq 0$.
 
-The fitted line (Figure~\ref{fig:A7}, Table~\ref{tab:A7}) has slope \AsevenB, \AsevenT, with $R^2 = \AsevenRsq$. The residual plots (Figure~\ref{fig:diag}) show no curvature and no funnel (Breusch--Pagan $p = \BPseven$), the residuals have a slightly long right tail from a few expensive filter coffees, and \AsevenInfl{} caf\'es have a large Cook's distance; without them the slope is \AsevenNoInfl, and the pairs bootstrap gives \AsevenBoot. In this sample, a caf\'e whose espresso costs 10\,CZK more charges on average about 8\,CZK more for a filter coffee, and the espresso price accounts for about 42\% of the variation in filter prices.
+The fitted line (Figure~\ref{fig:A7}, Table~\ref{tab:A7}) has slope \AsevenB, \AsevenT, with $R^2 = \AsevenRsq$. The residual plots (Figure~\ref{fig:diag}) show no curvature and no funnel (Breusch--Pagan $p = \BPseven$), the residuals have a slightly long right tail from a few expensive filter coffees, and \AsevenInfl{} caf\'es have a large Cook's distance; without them the slope is \AsevenNoInfl, so they do not change the conclusion. The residual spread is constant, so the robust standard errors barely differ from the classical ones. In this sample, a caf\'e whose espresso costs 10\,CZK more charges on average about 8\,CZK more for a filter coffee, and the espresso price accounts for about 42\% of the variation in filter prices.
 
 \begin{figure}[H]
 \centering
@@ -244,7 +244,7 @@ The fitted line (Figure~\ref{fig:A7}, Table~\ref{tab:A7}) has slope \AsevenB, \A
 
 \emph{Does the espresso price differ between caf\'es that offer filter coffee and those that do not once we account for the distance from the Orloj?} Model~1: espresso price $= b_0 + b_1\cdot$filter $+ e$; Model~2 adds the distance in km. $H_0$: $b_1 = 0$ in Model~2; $H_1$: $b_1 \neq 0$.
 
-Table~\ref{tab:A8} shows both models. Without distance the gap was \AeightBone{} (the same 3.9\,CZK as in A2). With distance, the gap was \AeightBtwo, and the espresso price fell with distance from the centre, \AeightDist{} (Figure~\ref{fig:A8}). The nested $F$-test favours Model~2, \AeightF{} (robust Wald test \AeightFrob), although $R^2$ rises only from \AeightRsqOne{} to \AeightRsqTwo. Accounting for distance \emph{increased} the gap by \AeightChange\,CZK (\AeightChangePct\%), because caf\'es with filter coffee lie on average a little further from the centre, where espressos are cheaper. The variance inflation factors are \AeightVIF, so the two predictors are practically unrelated. With a log of distance the gap is \AeightLog, and without the \AeightInfl{} influential caf\'es it is \AeightNoInfl. In this sample, among caf\'es at the same distance from the Orloj, those that offer filter coffee charge about 4.4\,CZK more for an espresso.
+Table~\ref{tab:A8} shows both models. Without distance the gap was \AeightBone{} (the same 3.9\,CZK as in A2). With distance, the gap was \AeightBtwo, and the espresso price fell with distance from the centre, \AeightDist{} (Figure~\ref{fig:A8}). The nested $F$-test favours Model~2, \AeightF{} (robust Wald test \AeightFrob), although $R^2$ rises only from \AeightRsqOne{} to \AeightRsqTwo. Accounting for distance \emph{increased} the gap by \AeightChange\,CZK (\AeightChangePct\%), because caf\'es with filter coffee lie on average a little further from the centre, where espressos are cheaper. The variance inflation factors are \AeightVIF, so the two predictors are practically unrelated. Without the \AeightInfl{} influential caf\'es the gap is \AeightNoInfl, so they do not drive the result (Appendix~\ref{app:diagnostics}). In this sample, among caf\'es at the same distance from the Orloj, those that offer filter coffee charge about 4.4\,CZK more for an espresso.
 
 \begin{table}[H]
 \centering\small
@@ -256,7 +256,7 @@ Table~\ref{tab:A8} shows both models. Without distance the gap was \AeightBone{}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.68\textwidth]{A8_figure.pdf}
-\caption{Price of an espresso (CZK) against the distance from the Orloj (km) for caf\'es without (blue) and with (orange) filter coffee, with the parallel lines of Model~2 ($N = \AeightN$).}
+\caption{Price of an espresso (CZK) against the distance from the Orloj (km) for caf\'es without (blue) and with (orange) filter coffee, with the parallel lines of Model~2 and their 95\% confidence bands; the label gives the filter gap at equal distance ($N = \AeightN$).}
 \label{fig:A8}
 \end{figure}
 
@@ -277,7 +277,7 @@ Among the \AnineN{} caf\'es with filter coffee (\AnineNind{} independent, \Anine
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.68\textwidth]{A9_figure.pdf}
-\caption{Price of a filter coffee against the price of an espresso (CZK) in independent caf\'es (blue, $n = \AnineNind$) and chains (orange, $n = \AnineNchain$), with the fitted line of the interaction model in each group over its observed range. Points are slightly jittered.}
+\caption{Price of a filter coffee against the price of an espresso (CZK) in independent caf\'es (blue, $n = \AnineNind$) and chains (orange, $n = \AnineNchain$), with the fitted line of the interaction model and its 95\% confidence band in each group over its observed range. Points are slightly jittered.}
 \label{fig:A9}
 \end{figure}
 
@@ -286,11 +286,11 @@ Among the \AnineN{} caf\'es with filter coffee (\AnineNind{} independent, \Anine
 
 \emph{Does the probability that a caf\'e offers filter coffee change with each additional km east of the Orloj, and by how many percentage points?} The binary outcome is the indicator created in cleaning: 1 if a filter price was recorded, 0 if the collector wrote ``NA''; the 2 caf\'es with a blank are excluded. The predictor is the east--west distance from the Orloj in km (positive = east, $(\text{longitude} - 14.4207) \times 71$). Model: $\operatorname{logit} P(\text{filter}) = b_0 + b_1\cdot$km east. $H_0$: the average marginal effect is 0; $H_1$: it is not 0.
 
-Of the \AtenN{} caf\'es, \AtenEvents{} offer filter coffee. The average marginal effect of one km further east was \AtenAME. As a check, the odds ratio was \AtenOR{} (Table~\ref{tab:A10}). The predicted probability (Figure~\ref{fig:A10}) rises from \AtenPwest\% at 2\,km west of the Orloj to \AtenPzero\% at the Orloj and \AtenPeast\% at 4\,km east. The bootstrap interval of the marginal effect \AtenBoot, the linear probability model (\AtenLPM) and the model without the \AtenInfl{} influential caf\'es (\AtenNoInfl) agree. In this sample, each km further east goes with a chance of offering filter coffee about 4.5 percentage points higher.
+Of the \AtenN{} caf\'es, \AtenEvents{} offer filter coffee. The average marginal effect of one km further east was \AtenAME. As a check, the odds ratio was \AtenOR{} (Table~\ref{tab:A10}). The predicted probability (Figure~\ref{fig:A10}) rises from \AtenPwest\% at 2\,km west of the Orloj to \AtenPzero\% at the Orloj and \AtenPeast\% at 4\,km east. Without the \AtenInfl{} influential caf\'es the effect is \AtenNoInfl, so the conclusion does not depend on them. In this sample, each km further east goes with a chance of offering filter coffee about 4.5 percentage points higher.
 
 \begin{table}[H]
 \centering\small
-\caption{A10: logistic regression of offering filter coffee on the distance east of the Orloj (km), $n = \AtenN$, \AtenEvents{} events. The average marginal effect (delta-method interval) is the headline; the odds ratio (profile-likelihood interval) and the linear probability model (HC3) are checks. pp = percentage points.}
+\caption{A10: logistic regression of offering filter coffee on the distance east of the Orloj (km), $n = \AtenN$, \AtenEvents{} events. The average marginal effect (delta-method interval) is the headline; the odds ratio (profile-likelihood interval) is a check; the linear probability model (HC3) is an exploratory check. pp = percentage points.}
 \label{tab:A10}
 \fittable{A10_table.tex}
 \end{table}
@@ -310,6 +310,10 @@ Taken together, the results draw a consistent picture of filter coffee in this s
 The remaining results are smaller and should be read as exploratory. Caf\'es that offer filter coffee charge about 4\,CZK more for an espresso (A2), a gap that holds after accounting for distance (A8); the espresso price tends to rise with the number of specialty features but not significantly (A4); filter prices may follow espresso prices less steeply in chains (A9); and filter coffee becomes more common further east (A10). A2, A8, A9 and A10 are significant only by a narrow margin, A4 and A9 change their verdict depending on the method, and none survives Holm's adjustment. They are plausible effects of modest size, not established findings.
 
 A reader should not conclude more than the design allows. The caf\'es form a convenience sample chosen by students, with a strong concentration in central districts; it is not a random sample of Prague caf\'es, so averages may not hold for the city as a whole. The data are observational: offering filter coffee does not \emph{cause} higher espresso prices, and both are likely to reflect a caf\'e's positioning, rent and clientele. Caf\'es in the same district share rents and customers, so their prices are not independent of one another and our standard errors are probably too small. Prices were recorded from menus by different students, multi-price cells were reduced to the first price, and the filter price exists only for the 54 caf\'es that sell it, which limits A1, A3, A6, A7 and A9 to that group and leaves only 19 chains in A9. All conclusions are therefore stated for this sample.
+
+\section{Conclusion}
+
+What do specialty caf\'es in Prague offer? In this sample, filter coffee, the clearest specialty marker we recorded, is sold by fewer than a third of caf\'es, but by most roasteries. It costs about what 4 US dollars buy, about 17\,CZK more than an espresso in the same caf\'e, and caf\'es set its price in line with their espresso. Caf\'es that offer it charge slightly more for an espresso and are somewhat more common east of the centre, but these smaller differences are uncertain. Specialty caf\'es therefore stand out more in \emph{what} they offer than in what they charge for the basics.
 
 % =============================================================================
 \appendix
@@ -336,7 +340,7 @@ Table~\ref{tab:descriptives} describes the numeric variables and Table~\ref{tab:
 
 \section{Distributions and normality}\label{app:distributions}
 
-Figure~\ref{fig:distributions} shows a histogram and a normal Q--Q plot for every variable and group that is tested, and Table~\ref{tab:decision} the resulting decisions. All prices are right-skewed (skewness 0.66 to 1.07) because a few caf\'es are expensive; the within-caf\'e difference is the most skewed (2.34), driven by one caf\'e whose filter coffee costs 75\,CZK more than its espresso. The Shapiro--Wilk test rejects normality for every group except caf\'es with both specialty features, which look normal but are only 13. Every other group has at least 49 caf\'es, and the bootstrapped means (Figure~\ref{fig:bootmeans}) are close to symmetric (skewness at most 0.30), so the central limit theorem justifies the parametric method as primary for every question. Because the skewness is real, the rank-based test is reported as the second method; it disagrees only for A4 (Appendix~\ref{app:robustness}). Figure~\ref{fig:paired} shows the paired prices behind A3.
+Figure~\ref{fig:distributions} shows a histogram and a normal Q--Q plot for every variable and group that is tested, and Table~\ref{tab:decision} the resulting decisions. All prices are right-skewed (skewness 0.66 to 1.07) because a few caf\'es are expensive; the within-caf\'e difference is the most skewed (2.34), driven by one caf\'e whose filter coffee costs 75\,CZK more than its espresso. The Shapiro--Wilk test rejects normality for every group except caf\'es with both specialty features, which look normal but are only 13. Every other group has at least 49 caf\'es, and the bootstrapped means (Figure~\ref{fig:bootmeans}) are close to symmetric (skewness at most 0.30), so the central limit theorem justifies the parametric method as primary for every question. Because the skewness is real, rank-based tests were run as exploratory checks (Appendix~\ref{app:robustness}). Figure~\ref{fig:paired} shows the paired prices behind A3.
 
 \begin{table}[H]
 \centering\small
@@ -386,7 +390,7 @@ Figure~\ref{fig:diag} shows the residuals of the three linear models and Table~\
 
 \section{Alternative tests and robustness}\label{app:robustness}
 
-Table~\ref{tab:robustness} lists the second method for every question. The rank-based tests, bootstrap intervals and alternative specifications agree with the primary method for eight questions. For A4, Welch's and the classic ANOVA find no difference but Kruskal--Wallis does ($p = .040$); the rank test compares the whole distributions, and the right tail of the ``one feature'' group pulls the means less apart than the ranks. For A9, the robust test gives $p = .048$ and the classic test $p = .051$: the result is on the threshold. Table~\ref{tab:posthoc} gives the full A4 post hoc comparisons. Table~\ref{tab:holm} adjusts the ten primary $p$-values with Holm's method: \HolmSig{} of the \RawSig{} significant results remain (A3, A5, A6, A7).
+The checks in this appendix were \emph{not planned in advance}; they are exploratory and do not replace the primary results in Section~3. Table~\ref{tab:robustness} lists a second method for every question. The rank-based tests, bootstrap intervals and alternative specifications agree with the primary method for eight questions. For A4, Welch's and the classic ANOVA find no difference but Kruskal--Wallis does ($p = .040$); the rank test compares the whole distributions, and the right tail of the ``one feature'' group pulls the means less apart than the ranks. For A9, the robust test gives $p = .048$ and the classic test $p = .051$: the result is on the threshold. For A3, removing the most extreme caf\'e gives a mean difference of \AthreeTrim\,CZK. For A8, a log of distance gives a filter gap of \AeightLog. Table~\ref{tab:posthoc} gives the full A4 post hoc comparisons. Table~\ref{tab:holm} adjusts the ten primary $p$-values with Holm's method: \HolmSig{} of the \RawSig{} significant results remain (A3, A5, A6, A7).
 
 \begin{table}[H]
 \centering\small

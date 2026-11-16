@@ -165,10 +165,14 @@ put <- function(name, value) {
 }
 
 # --- booktabs table writer (no escaping: cells already contain LaTeX)
-write_tab <- function(df, file, align, rule_after = integer(0)) {
+write_tab <- function(df, file, align, rule_after = integer(0), extra = NULL) {
   body <- apply(as.matrix(df), 1, paste, collapse = " & ")
   body <- gsub("= < ", "< ", paste(body, "\\\\"), fixed = TRUE)  # "p = < .001"
   for (r in rev(rule_after)) body <- append(body, "\\midrule", after = r)
+  if (!is.null(extra)) {
+    body <- c(body, "\\midrule",
+              paste0("\\multicolumn{", ncol(df), "}{l}{", extra, "} \\\\"))
+  }
   writeLines(c(paste0("\\begin{tabular}{", align, "}"), "\\toprule",
                paste(paste(names(df), collapse = " & "), "\\\\"), "\\midrule",
                body, "\\bottomrule", "\\end{tabular}"),
@@ -179,7 +183,8 @@ write_tab <- function(df, file, align, rule_after = integer(0)) {
 # --- CI of a standardised effect from the noncentral t distribution
 ncp_ci <- function(tval, df, level = 0.95) {
   a <- (1 - level) / 2
-  f <- function(ncp, prob) pt(tval, df, ncp) - prob
+  # suppressWarnings: pt() notes reduced precision for far-off trial values of ncp
+  f <- function(ncp, prob) suppressWarnings(pt(tval, df, ncp)) - prob
   c(uniroot(f, tval + c(-10, 10), prob = 1 - a, extendInt = "yes")$root,
     uniroot(f, tval + c(-10, 10), prob = a,     extendInt = "yes")$root)
 }
@@ -289,15 +294,12 @@ put("AoneBoot", ci_txt(mean(x), b1_ci[1], b1_ci[2]))
 primary_p["A1"] <- t1$p.value
 
 write_tab(data.frame(
-  Method = c("One-sample $t$-test (primary)", "Bootstrap, percentile",
-             "Wilcoxon signed-rank"),
-  Estimate = c(paste("Mean", ci_txt(mc["mean"], mc["lo"], mc["hi"])),
-               paste("Mean", ci_txt(mean(x), b1_ci[1], b1_ci[2])),
-               paste("Pseudo-median", ci_txt(w1$estimate, w1$conf.int[1], w1$conf.int[2]))),
-  `Test statistic` = c(sprintf("$t(%d) = %s$", n - 1, fmt(t1$statistic, 2)), "--",
-                       sprintf("$V = %s$", fmt(w1$statistic, 0))),
-  `$p$` = c(fmt_p(t1$p.value), "--", fmt_p(w1$p.value)),
-  check.names = FALSE), "A1_table.tex", "llrr")
+  `$n$` = n, `Mean [95\\% CI] (CZK)` = ci_txt(mc["mean"], mc["lo"], mc["hi"]),
+  `Median [IQR]` = sprintf("%s [%s, %s]", fmt(median(x)), fmt(quantile(x, .25)), fmt(quantile(x, .75))),
+  `Mean $-$ benchmark [95\\% CI]` = ci_txt(mean(x) - BENCH_CZK, t1$conf.int[1] - BENCH_CZK, t1$conf.int[2] - BENCH_CZK),
+  `$d$ [95\\% CI]` = ci_txt(d1, d1_ci[1], d1_ci[2], 2),
+  `$t(df)$` = sprintf("$t(%d) = %s$", n - 1, fmt(t1$statistic, 2)),
+  `$p$` = fmt_p(t1$p.value), check.names = FALSE), "A1_table.tex", "rrrrrrr")
 
 pdf(file.path(fig_dir, "A1_figure.pdf"), width = 7, height = 3.6)
 par(mar = c(4.5, 1, 2.5, 1))
@@ -345,16 +347,16 @@ put("AtwoHL", ci_txt(w2b$estimate, w2b$conf.int[1], w2b$conf.int[2]))
 put("AtwoBoot", ci_txt(diff2, b2_ci[1], b2_ci[2]))
 primary_p["A2"] <- t2$p.value
 
+lev2 <- leveneTest(espresso_price ~ filter_group, data = a2)
+put("AtwoLevene", sprintf("\\Fstat{%d}{%d}{%s}, %s", lev2[1, "Df"], lev2[2, "Df"],
+                          fmt(lev2[1, "F value"], 2), p_tex(lev2[1, "Pr(>F)"])))
 write_tab(data.frame(
-  Method = c("Welch $t$-test (primary)", "Bootstrap, percentile",
-             "Mann--Whitney $U$ (Hodges--Lehmann shift)"),
-  Estimate = c(ci_txt(diff2, t2b$conf.int[1], t2b$conf.int[2]),
-               ci_txt(diff2, b2_ci[1], b2_ci[2]),
-               ci_txt(w2b$estimate, w2b$conf.int[1], w2b$conf.int[2])),
-  `Test statistic` = c(sprintf("$t(%s) = %s$", fmt(t2$parameter), fmt(t2$statistic, 2)),
-                       "--", sprintf("$W = %s$", fmt(w2$statistic, 0))),
-  `$p$ (one-tailed)` = c(fmt_p(t2$p.value), "--", fmt_p(w2$p.value)),
-  check.names = FALSE), "A2_table.tex", "llrr")
+  `$n$ (filter / no filter)` = sprintf("%d / %d", n1, n0),
+  `Means (CZK)` = sprintf("%s / %s", fmt(mean(y1)), fmt(mean(y0))),
+  `Difference [95\\% CI] (CZK)` = ci_txt(diff2, t2b$conf.int[1], t2b$conf.int[2]),
+  `$d$ [95\\% CI]` = ci_txt(d2, d2_ci[1], d2_ci[2], 2),
+  `Welch $t(df)$` = sprintf("$t(%s) = %s$", fmt(t2$parameter), fmt(t2$statistic, 2)),
+  `$p$ (one-tailed)` = fmt_p(t2$p.value), check.names = FALSE), "A2_table.tex", "rrrrrr")
 
 pdf(file.path(fig_dir, "A2_figure.pdf"), width = 5.5, height = 4.5)
 par(mar = c(4.5, 4.5, 1, 1))
@@ -400,18 +402,11 @@ put("AthreeBoot", ci_txt(mean(dd), b3_ci[1], b3_ci[2]))
 primary_p["A3"] <- t3$p.value
 
 write_tab(data.frame(
-  Method = c("Paired $t$-test (primary)", "Bootstrap, percentile",
-             "Wilcoxon signed-rank (pseudo-median)",
-             "Paired $t$, largest difference removed"),
-  Estimate = c(ci_txt(mean(dd), t3b$conf.int[1], t3b$conf.int[2]),
-               ci_txt(mean(dd), b3_ci[1], b3_ci[2]),
-               ci_txt(w3b$estimate, w3b$conf.int[1], w3b$conf.int[2]),
-               ci_txt(mean(dd_trim), t3s$conf.int[1], t3s$conf.int[2])),
-  `Test statistic` = c(sprintf("$t(%d) = %s$", n - 1, fmt(t3$statistic, 2)), "--",
-                       sprintf("$V = %s$", fmt(w3$statistic, 0)),
-                       sprintf("$t(%d) = %s$", n - 2, fmt(t3s$statistic, 2))),
-  `$p$ (one-tailed)` = c(fmt_p(t3$p.value), "--", fmt_p(w3$p.value), fmt_p(t3s$p.value / 2)),
-  check.names = FALSE), "A3_table.tex", "llrr")
+  `$n$` = n, `Mean difference [95\\% CI] (CZK)` = ci_txt(mean(dd), t3b$conf.int[1], t3b$conf.int[2]),
+  `Median [IQR]` = sprintf("%s [%s, %s]", fmt(median(dd)), fmt(quantile(dd, .25)), fmt(quantile(dd, .75))),
+  `$d_z$ [95\\% CI]` = ci_txt(dz, dz_ci[1], dz_ci[2], 2),
+  `$t(df)$` = sprintf("$t(%d) = %s$", n - 1, fmt(t3$statistic, 2)),
+  `$p$ (one-tailed)` = fmt_p(t3$p.value), check.names = FALSE), "A3_table.tex", "rrrrrr")
 
 pdf(file.path(fig_dir, "A3_figure.pdf"), width = 7, height = 3.6)
 par(mar = c(4.5, 1, 2.5, 1))
@@ -493,7 +488,10 @@ write_tab(data.frame(
   Comparison = gh$comparison,
   `Difference [95\\% CI] (CZK)` = ci_txt(gh$diff, gh$lo, gh$hi),
   `$df$` = fmt(gh$df),
-  `$p_{\\text{adj}}$` = fmt_p(gh$p), check.names = FALSE), "A4_table.tex", "lrrr")
+  `$p_{\\text{adj}}$` = fmt_p(gh$p), check.names = FALSE), "A4_table.tex", "lrrr",
+  extra = sprintf("Welch's ANOVA: $F(%d, %s) = %s$, $p = %s$; $\\eta^2 = %s$, 95\\%% CI [%s, %s]; $N = %d$",
+                  w4$parameter[1], fmt(w4$parameter[2]), fmt(w4$statistic, 2), fmt_p(w4$p.value),
+                  fmt(eta2, 3), fmt(eta2_int[1], 3), fmt(eta2_int[2], 3), N4))
 
 # Full post hoc tables for Appendix D
 tk_names <- rownames(tk)
@@ -558,7 +556,11 @@ write_tab(data.frame(
   `Offers filter` = c(pct(tab5[1, 2], n_o), pct(tab5[2, 2], n_r), pct(sum(tab5[, 2]), N5)),
   Total = c(n_o, n_r, N5),
   `Std.\\ residual (offers filter)` = c(fmt(res[1, 2], 2), fmt(res[2, 2], 2), "--"),
-  check.names = FALSE), "A5_table.tex", "lrrrr", rule_after = 2)
+  check.names = FALSE), "A5_table.tex", "lrrrr", rule_after = 2,
+  extra = sprintf("$\\chi^2(1, N = %d) = %s$, $p %s$; $V = %s$ [%s, %s]; difference %s pp [%s, %s]; smallest expected count %s",
+                  N5, fmt(cs$statistic, 2), ifelse(cs$p.value < .001, "< .001", paste("=", fmt_p(cs$p.value))),
+                  fmt(V5, 2), fmt(V5_ci[1], 2), fmt(V5_ci[2], 2), fmt(pp), fmt(pp_ci[1]), fmt(pp_ci[2]),
+                  fmt(min(cs$expected))))
 
 wil <- function(x, n) prop.test(x, n, correct = FALSE)$conf.int * 100
 ci_r <- wil(x_r, n_r); ci_o <- wil(x_o, n_o)
@@ -566,7 +568,7 @@ pdf(file.path(fig_dir, "A5_figure.pdf"), width = 5.5, height = 4.5)
 par(mar = c(4.5, 4.5, 1, 1))
 bp <- barplot(c(100 * x_o / n_o, 100 * x_r / n_r), names.arg = c(
   sprintf("Other cafe\n(n = %d)", n_o), sprintf("Roastery\n(n = %d)", n_r)),
-  ylim = c(0, 100), col = COL[1], border = NA, space = 0.6, padj = 0.5,
+  ylim = c(0, 100), col = COL[1], border = NA, space = 0.6,
   ylab = "Cafes offering filter coffee (%)")
 arrows(bp, c(ci_o[1], ci_r[1]), bp, c(ci_o[2], ci_r[2]), angle = 90, code = 3,
        length = 0.06, lwd = 2, col = "grey20")
@@ -601,14 +603,12 @@ put("AsixTau", sprintf("$\\tau = %s$, 95\\%% CI [%s, %s], %s", fmt(k6$estimate, 
 put("AsixBoot", sprintf("[%s, %s]", fmt(rb[1], 2), fmt(rb[2], 2)))
 primary_p["A6"] <- r6$p.value
 
+put("AsixRsq", fmt(r6$estimate^2, 2))
 write_tab(data.frame(
-  Coefficient = c("Pearson $r$ (primary)", "Spearman $\\rho$", "Kendall $\\tau$"),
-  Estimate = fmt(c(r6$estimate, s6$estimate, k6$estimate), 2),
-  `95\\% CI` = c(sprintf("[%s, %s] (Fisher $z$)", fmt(r6$conf.int[1], 2), fmt(r6$conf.int[2], 2)),
-                 sprintf("[%s, %s] (bootstrap)", fmt(sb[1], 2), fmt(sb[2], 2)),
-                 sprintf("[%s, %s] (bootstrap)", fmt(kb[1], 2), fmt(kb[2], 2))),
-  `$p$` = fmt_p(c(r6$p.value, s6$p.value, k6$p.value)), check.names = FALSE),
-  "A6_table.tex", "lrlr")
+  `$n$` = n, `Pearson $r$ [95\\% CI]` = ci_txt(r6$estimate, r6$conf.int[1], r6$conf.int[2], 2),
+  `$r^2$` = fmt(r6$estimate^2, 2),
+  `$t(df)$` = sprintf("$t(%d) = %s$", r6$parameter, fmt(r6$statistic, 2)),
+  `$p$` = fmt_p(r6$p.value), check.names = FALSE), "A6_table.tex", "rrrrr")
 
 pdf(file.path(fig_dir, "A6_figure.pdf"), width = 5.5, height = 4.8)
 par(mar = c(4.5, 4.5, 1, 1))
@@ -616,7 +616,8 @@ set.seed(SEED)
 plot(jitter(f$espresso_price, amount = 0.8), jitter(f$filter_price, amount = 0.8),
      pch = 21, bg = alpha_col(COL[1], 0.6), col = "white", cex = 1.4, bty = "l",
      xlab = "Price of an espresso (CZK)", ylab = "Price of a filter coffee (CZK)")
-legend("topleft", bty = "n", legend = sprintf("r = %.2f, n = %d", r6$estimate, n))
+legend("topleft", bty = "n", legend = sprintf("r = %.2f, 95%% CI [%.2f, %.2f], n = %d",
+                                              r6$estimate, r6$conf.int[1], r6$conf.int[2], n))
 dev.off()
 
 summary_rows$A6 <- c("A6", "Filter and espresso price", "Pearson $r$", n,
@@ -660,7 +661,8 @@ write_tab(data.frame(
   `Robust 95\\% CI` = sprintf("[%s, %s]", fmt(r7$lo, 2), fmt(r7$hi, 2)),
   `$t(%d)$` = fmt(r7$t, 2), `$p$` = fmt_p(r7$p), check.names = FALSE) |>
   setNames(c("Term", "$b$", "Robust SE", "Robust 95\\% CI", sprintf("$t(%d)$", m7$df.residual), "$p$")),
-  "A7_table.tex", "lrrrrr")
+  "A7_table.tex", "lrrrrr",
+  extra = sprintf("$n = %d$, $R^2 = %s$", nobs(m7), fmt(s7$r.squared, 3)))
 
 pdf(file.path(fig_dir, "A7_figure.pdf"), width = 5.5, height = 4.8)
 par(mar = c(4.5, 4.5, 1, 1))
@@ -725,7 +727,10 @@ write_tab(data.frame(
                 fmt(summary(m81)$r.squared, 3), fmt(summary(m81)$adj.r.squared, 3)),
   `Model 2` = c(cell(r82[1, ]), cell(r82[2, ]), cell(r82[3, ]), nobs(m82),
                 fmt(summary(m82)$r.squared, 3), fmt(summary(m82)$adj.r.squared, 3)),
-  check.names = FALSE), "A8_table.tex", "lcc", rule_after = 6)
+  check.names = FALSE), "A8_table.tex", "lcc", rule_after = 6,
+  extra = sprintf("Filter coefficient, Model 2: $t(%d) = %s$, $p = %s$. Nested $F$-test: $F(%d, %d) = %s$, $p = %s$",
+                  m82$df.residual, fmt(b82$t, 2), fmt_p(b82$p), nest$Df[2], nest$Res.Df[2],
+                  fmt(nest$F[2], 2), fmt_p(nest$`Pr(>F)`[2])))
 
 pdf(file.path(fig_dir, "A8_figure.pdf"), width = 6.5, height = 4.8)
 par(mar = c(4.5, 4.5, 1, 1))
@@ -734,9 +739,14 @@ plot(a8$distance_km, a8$espresso_price, pch = 21, bg = alpha_col(COL[grp], 0.55)
      col = "white", cex = 1.3, bty = "l", xlab = "Distance from the Orloj (km)",
      ylab = "Price of an espresso (CZK)")
 gx <- seq(0, max(a8$distance_km), length.out = 50)
-for (g in 0:1) lines(gx, predict(m82, data.frame(offers_filter = g, distance_km = gx)),
-                     lwd = 2.5, col = COL[g + 1])
-legend("topright", bty = "n", pch = 21, pt.bg = COL[1:2], col = "white", pt.cex = 1.4,
+for (g in 0:1) {
+  pg <- predict(m82, data.frame(offers_filter = g, distance_km = gx), interval = "confidence")
+  polygon(c(gx, rev(gx)), c(pg[, "lwr"], rev(pg[, "upr"])), col = alpha_col(COL[g + 1], 0.18), border = NA)
+  lines(gx, pg[, "fit"], lwd = 2.5, col = COL[g + 1])
+}
+mtext(sprintf("Filter gap at equal distance: %.1f CZK, 95%% CI [%.1f, %.1f]", b82$b, b82$lo, b82$hi),
+      side = 3, line = -1.2, adj = 0.02, cex = 0.85)
+legend("bottomleft", bty = "n", pch = 21, pt.bg = COL[1:2], col = "white", pt.cex = 1.4,
        lwd = 2.5, lty = 1, legend = c(sprintf("No filter (n = %d)", sum(a8$offers_filter == 0)),
                                       sprintf("Offers filter (n = %d)", sum(a8$offers_filter == 1))))
 dev.off()
@@ -788,7 +798,10 @@ write_tab(data.frame(
   `Robust 95\\% CI` = sprintf("[%s, %s]", fmt(c(r9$lo, sI["lo"], sC["lo"]), 2),
                               fmt(c(r9$hi, sI["hi"], sC["hi"]), 2)),
   `$p$` = fmt_p(c(r9$p, sI["p"], sC["p"])), check.names = FALSE),
-  "A9_table.tex", "lrrr", rule_after = 4)
+  "A9_table.tex", "lrrr", rule_after = 4,
+  extra = sprintf("Interaction: $t(%d) = %s$, $p = %s$; robust nested $F(%d, %d) = %s$, $p = %s$; $n = %d$, $R^2 = %s$",
+                  m9$df.residual, fmt(bi$t, 2), fmt_p(bi$p), abs(nest9R$Df[2]), nest9R$Res.Df[2],
+                  fmt(nest9R$F[2], 2), fmt_p(nest9R$`Pr(>F)`[2]), nobs(m9), fmt(summary(m9)$r.squared, 3)))
 
 pdf(file.path(fig_dir, "A9_figure.pdf"), width = 6.5, height = 4.8)
 par(mar = c(4.5, 4.5, 1, 1))
@@ -799,8 +812,10 @@ plot(jitter(f$espresso_price, amount = 0.8), jitter(f$filter_price, amount = 0.8
      xlab = "Price of an espresso (CZK)", ylab = "Price of a filter coffee (CZK)")
 for (g in levels(f$chain_group)) {
   rg <- range(f$espresso_price[f$chain_group == g]); gx <- seq(rg[1], rg[2], length.out = 50)
-  lines(gx, predict(m9, data.frame(esp10 = gx / 10, chain_group = g)), lwd = 2.5,
-        col = COL[match(g, levels(f$chain_group))])
+  pg <- predict(m9, data.frame(esp10 = gx / 10, chain_group = g), interval = "confidence")
+  cg <- COL[match(g, levels(f$chain_group))]
+  polygon(c(gx, rev(gx)), c(pg[, "lwr"], rev(pg[, "upr"])), col = alpha_col(cg, 0.18), border = NA)
+  lines(gx, pg[, "fit"], lwd = 2.5, col = cg)
 }
 legend("topleft", bty = "n", pch = 21, pt.bg = COL[1:2], col = "white", pt.cex = 1.4,
        lwd = 2.5, legend = c(sprintf("Independent (n = %d)", nI), sprintf("Chain (n = %d)", nC)))
@@ -858,7 +873,9 @@ write_tab(data.frame(
                  sprintf("[%s, %s]", fmt(100 * ame$conf.low), fmt(100 * ame$conf.high)),
                  sprintf("[%s, %s]", fmt(100 * rl$lo[2]), fmt(100 * rl$hi[2]))),
   `$p$` = c(fmt_p(z10[, 4]), fmt_p(z10[2, 4]), fmt_p(ame$p.value), fmt_p(rl$p[2])),
-  check.names = FALSE), "A10_table.tex", "lrrr", rule_after = 2)
+  check.names = FALSE), "A10_table.tex", "lrrr", rule_after = 2,
+  extra = sprintf("AME: $z = %s$, $p = %s$; $n = %d$, %d caf\\'es offer filter coffee",
+                  fmt(ame$statistic, 2), fmt_p(ame$p.value), nrow(a10), sum(a10$offers_filter)))
 
 pdf(file.path(fig_dir, "A10_figure.pdf"), width = 6.5, height = 4.6)
 par(mar = c(4.5, 4.5, 1, 1))
@@ -889,9 +906,10 @@ add_rob("A10", "Bootstrap AME; linear probability model",
 # ---- Summary, robustness, Holm, diagnostics ----------------------------------
 
 summ <- as.data.frame(do.call(rbind, summary_rows))
-names(summ) <- c("", "Question", "Method", "$n$", "Estimate [95\\% CI]",
+summ <- cbind(summ[, 1:4], Lost = nrow(d) - as.integer(summ[, 4]), summ[, 5:7])
+names(summ) <- c("", "Question", "Method", "$n$", "Lost", "Estimate [95\\% CI]",
                  "Effect size [95\\% CI]", "$p$")
-write_tab(summ, "summary.tex", "lllrlll")
+write_tab(summ, "summary.tex", "lllrrlll")
 
 write_tab(do.call(rbind, robust_rows), "D_robustness.tex", "lp{4.8cm}p{7.4cm}c")
 
