@@ -1,0 +1,27 @@
+# R / RStudio
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rproj
+
+# VS Code
+.vscode/
+
+# LaTeX build files (the .tex sources and the final PDFs ARE uploaded)
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.bbl
+*.blg
+*.nav
+*.snm
+*.vrb
+
+# Operating system
+.DS_Store
+Thumbs.db
