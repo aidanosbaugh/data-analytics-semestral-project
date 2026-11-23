@@ -1,28 +1,7 @@
-# =============================================================================
-# 01_cleaning.R  --  Data Analytics semestral project, topic: Specialty Cafes
-#
-# What it does: reads the raw collection sheet (analysis/raw_data.csv, never
-# edited by hand), cleans it step by step, creates the variables the research
-# questions need, and writes analysis/dataset.csv. It also writes a short
-# cleaning log (report/tables/cleaning_table.tex) for Section 2.1 of the report.
-#
-# How to run: from the REPOSITORY ROOT (e.g. open the RStudio project there).
-#   source("analysis/01_cleaning.R")
-#
-# Packages: none. Base R only, so it runs on any fresh R installation.
-#
-# Steps follow Appendix B.1 of the guidelines:
-#   0. Read the raw file
-#   1. Inspect: structure, empty rows, duplicated rows, same cafe entered twice
-#   2. Categories: district, cafe type, payment, roastery
-#   3. Explicit decisions: cells with several prices, NA vs blank filter price
-#   4. Text -> numbers (thousands separator, "NA" text)
-#   5. Create variables: offers_filter, specialty_features, is_chain, ew_km ...
-#   6. Check the result and write dataset.csv
-# =============================================================================
 
 
-# ---- 0. Paths and reading ---------------------------------------------------
+
+## PATHS
 
 raw_path <- file.path("analysis", "raw_data.csv")
 out_path <- file.path("analysis", "dataset.csv")
@@ -33,19 +12,12 @@ if (!file.exists(raw_path)) {
 }
 dir.create(tab_dir, recursive = TRUE, showWarnings = FALSE)
 
-# colClasses = "character": read EVERYTHING as text first, so R does not guess
-#   types and silently turn "1,020" or "85, 95" into NA.
-# na.strings = character(0): do NOT turn the text "NA" into a missing value yet.
-#   In this sheet "NA" means "the cafe does not serve this drink", which is
-#   different from a blank cell ("nobody wrote anything"). We decide later.
 raw <- read.csv(raw_path, colClasses = "character", na.strings = character(0),
                 check.names = FALSE, fileEncoding = "UTF-8")
 
 cat("Raw file:", nrow(raw), "rows x", ncol(raw), "columns\n")
 print(names(raw))   # the original (long) column names, for the record
 
-# Short, R-friendly names, in the order of the sheet. "_raw" marks columns we
-# will convert later; the converted version gets a new name (never overwrite).
 short_names <- c("collector", "visit_time", "district_raw", "district_name",
                  "cafe_name", "address", "coords", "gmaps_link",
                  "espresso_raw", "cappuccino_raw", "flatwhite_raw", "filter_raw",
@@ -56,51 +28,40 @@ short_names <- c("collector", "visit_time", "district_raw", "district_name",
 stopifnot(ncol(raw) == length(short_names))
 names(raw) <- short_names
 
-# Row number in the raw file (1 = first data row under the header). It never
-# changes because the raw file is never edited, so we can refer to rows by it.
 raw$raw_row <- seq_len(nrow(raw))
 
-# Cleaning log: every step and how many cafes (rows) it affected.
-clean_log <- data.frame(step = character(0), cafes = integer(0))
-log_step <- function(step, n) {
-  clean_log <<- rbind(clean_log, data.frame(step = step, cafes = as.integer(n)))
-  cat(sprintf("[log] %-60s %d\n", step, n))
-}
-log_step("Rows in the raw file", nrow(raw))
 
 # Helpers used several times below
 is_blank   <- function(x) is.na(x) | x == ""
-is_na_text <- function(x) !is.na(x) & toupper(x) == "NA"        # "NA", "na"
+is_na_text <- function(x) !is.na(x) & toupper(x) == "NA"       
 
 
-# ---- 1. Inspect -------------------------------------------------------------
+## INSPECT
 
 str(raw)
 
-# 1a. Stray spaces ("Prague 7 ", "Joseph Muchnick "). Trim them in a copy and
-#     count how many rows had at least one changed cell.
+## STRAY SPACES
+
 d <- raw
 text_cols <- setdiff(names(d), "raw_row")
 d[text_cols] <- lapply(d[text_cols], trimws)
 rows_trimmed <- sum(apply(d[text_cols] != raw[text_cols], 1, any))
 log_step("Leading or trailing spaces removed (rows)", rows_trimmed)
 
-# 1b. Empty rows. At the bottom of the sheet there are rows with no collector
-#     and no cafe, only the default "Cash & Card" and spreadsheet "#VALUE!".
+## EMPTY ROWS
 empty_row <- is_blank(d$collector) & is_blank(d$cafe_name)
 cat("\nNon-blank cells per column in the empty rows (what is left in them):\n")
 print(colSums(!sapply(d[empty_row, text_cols], is_blank)))
 d <- d[!empty_row, ]
 log_step("Empty rows dropped", sum(empty_row))
 
-# 1c. Exactly duplicated rows (identical in every column)
+## DUPLICATE ROWS
 exact_dup <- duplicated(d[text_cols])
 cat("\nExactly duplicated rows:", sum(exact_dup), "\n")
 d <- d[!exact_dup, ]
 log_step("Exactly duplicated rows dropped", sum(exact_dup))
 
-# 1d. Coordinates: one cell "50.0836433, 14.4226154" -> latitude, longitude.
-#     (Needed here already, to find cafes entered twice by different students.)
+## COORDINATES
 coord_parts <- strsplit(d$coords, ",")
 d$lat <- as.numeric(sapply(coord_parts, `[`, 1))
 d$lon <- as.numeric(sapply(coord_parts, `[`, 2))
@@ -177,16 +138,16 @@ log_step("Same cafe entered twice: second entry dropped", length(drop_rows))
 log_step("Cafes after removing empty and duplicate rows", nrow(d))
 
 
-# ---- 2. Categories ----------------------------------------------------------
+## CATEGORIES
 
-# 2a. District: "prague 1", "Prage 7", "prauge 1" -> "Prague 1"
+## DISTRICTS
 cat("\nDistrict labels before:\n"); print(table(d$district_raw, useNA = "ifany"))
 d$district <- sub("^pr[a-z]*e\\s*", "Prague ", tolower(d$district_raw))
 cat("District labels after:\n");  print(table(d$district, useNA = "ifany"))
 stopifnot(all(grepl("^Prague [0-9]+$", d$district)))
 log_step("District labels harmonised", sum(d$district != d$district_raw))
 
-# 2b. Cafe type: one blank cell -> missing (NA), not a fourth category.
+## CAFE TYPE
 cat("\nCafe type before:\n"); print(table(d$type_raw, useNA = "ifany"))
 d$cafe_type <- ifelse(is_blank(d$type_raw), NA, d$type_raw)
 d$cafe_type <- factor(d$cafe_type,
@@ -194,17 +155,17 @@ d$cafe_type <- factor(d$cafe_type,
 stopifnot(sum(is.na(d$cafe_type)) == sum(is_blank(d$type_raw)))  # no typo lost
 log_step("Blank cafe type set to missing", sum(is_blank(d$type_raw)))
 
-# 2c. Payment: already consistent (dropdown), only checked.
+## PAYMENT, CONSISTANT?
 cat("\nPayment:\n"); print(table(d$payment_raw, useNA = "ifany"))
 d$payment <- d$payment_raw
 
-# 2d. Roastery 0/1: must be exactly 0 or 1, never blank.
+## ROASTERY
 cat("\nIs roastery:\n"); print(table(d$roastery_raw, useNA = "ifany"))
 stopifnot(all(d$roastery_raw %in% c("0", "1")))
 d$is_roastery <- as.integer(d$roastery_raw)
 
 
-# ---- 3. Explicit decisions: prices ------------------------------------------
+## DECISION PRICES
 
 # First look at every price cell that is not a plain number.
 price_cols <- c("espresso_raw", "cappuccino_raw", "flatwhite_raw", "filter_raw")
